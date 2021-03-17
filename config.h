@@ -17,3 +17,13 @@ static const int controlkeyclear = 1;
 /* time in seconds to cancel lock with mouse movement */
 static const int timetocancel = 4;
 
+/*Enable blur*/
+/* #define BLUR */
+/* Set Blur radius */
+static const int blurRadius = 0;
+
+/*Enable Pixelation*/
+#define PIXELATION
+/*Set pixelation radius*/
+static const int pixelSize = 20;
+
