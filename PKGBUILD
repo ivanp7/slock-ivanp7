@@ -2,7 +2,7 @@
 # Maintainer: ivanp7
 
 _pkgname=slock
-pkgname=$_pkgname-ivanp7-git
+pkgname=$_pkgname-ivanp7
 pkgver=20170325.35633d4
 pkgrel=1
 pkgdesc="Simple X display locker"
