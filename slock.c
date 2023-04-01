@@ -131,6 +131,14 @@ gethash(void)
 	return hash;
 }
 
+// IMPORTANT difference: `num = 1` in slock, `len = 1` in dmenu
+#define DEF_ALT_KEY(code, normal_char, shift_char) \
+	case code: \
+	num = 1; \
+	buf[0] = (ev.xkey.state & ShiftMask) ? shift_char : normal_char; \
+	buf[1] = '\0'; \
+	goto insert;
+
 static void
 readpw(Display *dpy, struct xrandr *rr, struct lock **locks, int nscreens,
        const char *hash)
@@ -176,9 +184,55 @@ readpw(Display *dpy, struct xrandr *rr, struct lock **locks, int nscreens,
 					ksym = XK_Return;
 					break;
 				case XK_h:
-                                       ksym = XK_BackSpace;
+					ksym = XK_BackSpace;
 					break;
 				}
+			} else if (ev.xkey.state & Mod1Mask) {
+				switch(ev.xkey.keycode) {
+				DEF_ALT_KEY(65, ' ', ' ')
+
+				DEF_ALT_KEY(10, '1', '!')
+				DEF_ALT_KEY(11, '2', '@')
+				DEF_ALT_KEY(12, '3', '#')
+				DEF_ALT_KEY(13, '4', '$')
+				DEF_ALT_KEY(14, '5', '%')
+				DEF_ALT_KEY(15, '6', '^')
+				DEF_ALT_KEY(16, '7', '&')
+				DEF_ALT_KEY(17, '8', '*')
+				DEF_ALT_KEY(18, '9', '(')
+				DEF_ALT_KEY(19, '0', ')')
+				DEF_ALT_KEY(20, '-', '_')
+				DEF_ALT_KEY(21, '=', '+')
+
+				DEF_ALT_KEY(24, '`', '~')
+				DEF_ALT_KEY(30, '\\', '|')
+				DEF_ALT_KEY(31, '-', '_')
+				DEF_ALT_KEY(32, '=', '+')
+				DEF_ALT_KEY(33, ';', ':')
+				DEF_ALT_KEY(34, '[', '{')
+				DEF_ALT_KEY(35, ']', '}')
+
+				DEF_ALT_KEY(38, '1', '!')
+				DEF_ALT_KEY(39, '2', '@')
+				DEF_ALT_KEY(40, '3', '#')
+				DEF_ALT_KEY(41, '4', '$')
+				DEF_ALT_KEY(42, '5', '%')
+				DEF_ALT_KEY(43, '6', '^')
+				DEF_ALT_KEY(44, '7', '&')
+				DEF_ALT_KEY(45, '8', '*')
+				DEF_ALT_KEY(46, '9', '(')
+				DEF_ALT_KEY(47, '0', ')')
+				DEF_ALT_KEY(48, '\'', '"')
+				DEF_ALT_KEY(49, '`', '~')
+
+				DEF_ALT_KEY(51, '\\', '|')
+				DEF_ALT_KEY(55, '5', '%')
+				DEF_ALT_KEY(58, '6', '^')
+				DEF_ALT_KEY(59, ',', '<')
+				DEF_ALT_KEY(60, '.', '>')
+				DEF_ALT_KEY(61, '/', '?')
+				}
+                continue;
 			}
 			switch (ksym) {
 			case XK_Return:
@@ -204,6 +258,7 @@ readpw(Display *dpy, struct xrandr *rr, struct lock **locks, int nscreens,
 					passwd[--len] = '\0';
 				break;
 			default:
+insert:
 				if (num && !iscntrl((int)buf[0]) &&
 				    (len + num < sizeof(passwd))) {
 					memcpy(passwd + len, buf, num);
@@ -260,7 +315,7 @@ lockscreen(Display *dpy, struct xrandr *rr, int screen)
 	lock->screen = screen;
 	lock->root = RootWindow(dpy, lock->screen);
 
-    if(image) 
+    if(image)
     {
         lock->bgmap = XCreatePixmap(dpy, lock->root, DisplayWidth(dpy, lock->screen), DisplayHeight(dpy, lock->screen), DefaultDepth(dpy, lock->screen));
         imlib_context_set_image(image);
@@ -400,20 +455,20 @@ main(int argc, char **argv) {
 	imlib_context_set_image(image);
 	imlib_context_set_display(dpy);
 	imlib_context_set_visual(DefaultVisual(dpy,0));
-	imlib_context_set_drawable(RootWindow(dpy,XScreenNumberOfScreen(scr)));	
+	imlib_context_set_drawable(RootWindow(dpy,XScreenNumberOfScreen(scr)));
 	imlib_copy_drawable_to_image(0,0,0,scr->width,scr->height,0,0,1);
 
 #ifdef BLUR
 
 	/*Blur function*/
 	imlib_image_blur(blurRadius);
-#endif // BLUR	
+#endif // BLUR
 
 #ifdef PIXELATION
 	/*Pixelation*/
 	int width = scr->width;
 	int height = scr->height;
-	
+
 	for(int y = 0; y < height; y += pixelSize)
 	{
 		for(int x = 0; x < width; x += pixelSize)
@@ -422,7 +477,7 @@ main(int argc, char **argv) {
 			int green = 0;
 			int blue = 0;
 
-			Imlib_Color pixel; 
+			Imlib_Color pixel;
 			Imlib_Color* pp;
 			pp = &pixel;
 			for(int j = 0; j < pixelSize && j < height; j++)
@@ -445,8 +500,8 @@ main(int argc, char **argv) {
 			blue = 0;
 		}
 	}
-	
-	
+
+
 #endif
 	/* check for Xrandr support */
 	rr.active = XRRQueryExtension(dpy, &rr.evbase, &rr.errbase);
