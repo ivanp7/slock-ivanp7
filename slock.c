@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <spawn.h>
 #include <time.h>
 #include <sys/types.h>
 #include <X11/extensions/Xrandr.h>
@@ -343,7 +344,7 @@ lockscreen(Display *dpy, struct xrandr *rr, int screen)
 	                          DefaultVisual(dpy, lock->screen),
 	                          CWOverrideRedirect | CWBackPixel, &wa);
     if(lock->bgmap)
-        XSetWindowBackgroundPixmap(dpy, lock->win, lock->bgmap);
+		XSetWindowBackgroundPixmap(dpy, lock->win, lock->bgmap);
 	lock->pmap = XCreateBitmapFromData(dpy, lock->win, curs, 8, 8);
 	invisible = XCreatePixmapCursor(dpy, lock->pmap, lock->pmap,
 	                                &color, &color, 0, 0);
@@ -411,7 +412,7 @@ main(int argc, char **argv) {
 
 	ARGBEGIN {
 	case 'v':
-		fprintf(stderr, "slock-"VERSION"\n");
+		puts("slock-"VERSION);
 		return 0;
 	default:
 		usage();
@@ -524,15 +525,12 @@ main(int argc, char **argv) {
 
 	/* run post-lock command */
 	if (argc > 0) {
-		switch (fork()) {
-		case -1:
-			die("slock: fork failed: %s\n", strerror(errno));
-		case 0:
-			if (close(ConnectionNumber(dpy)) < 0)
-				die("slock: close: %s\n", strerror(errno));
-			execvp(argv[0], argv);
-			fprintf(stderr, "slock: execvp %s: %s\n", argv[0], strerror(errno));
-			_exit(1);
+		pid_t pid;
+		extern char **environ;
+		int err = posix_spawnp(&pid, argv[0], NULL, NULL, argv, environ);
+		if (err) {
+			die("slock: failed to execute post-lock command: %s: %s\n",
+			    argv[0], strerror(err));
 		}
 	}
 
