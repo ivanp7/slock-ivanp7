@@ -233,7 +233,7 @@ readpw(Display *dpy, struct xrandr *rr, struct lock **locks, int nscreens,
 				DEF_ALT_KEY(60, '.', '>')
 				DEF_ALT_KEY(61, '/', '?')
 				}
-                continue;
+				continue;
 			}
 			switch (ksym) {
 			case XK_Return:
@@ -260,20 +260,27 @@ readpw(Display *dpy, struct xrandr *rr, struct lock **locks, int nscreens,
 				break;
 			default:
 insert:
-				if (num && !iscntrl((int)buf[0]) &&
+				if (num && !iscntrl((unsigned char)buf[0]) &&
 				    (len + num < sizeof(passwd))) {
 					memcpy(passwd + len, buf, num);
 					len += num;
+				} else if (buf[0] == '\025') { /* ctrl-u clears input */
+					explicit_bzero(&passwd, sizeof(passwd));
+					len = 0;
 				}
 				break;
 			}
 			color = len ? INPUT : ((failure || failonclear) ? FAILED : INIT);
 			if (running && oldc != color) {
 				for (screen = 0; screen < nscreens; screen++) {
-                    if(locks[screen]->bgmap)
-                        XSetWindowBackgroundPixmap(dpy, locks[screen]->win, locks[screen]->bgmap);
-                    else
-                        XSetWindowBackground(dpy, locks[screen]->win, locks[screen]->colors[0]);
+					if(locks[screen]->bgmap)
+						XSetWindowBackgroundPixmap(dpy,
+						                           locks[screen]->win,
+						                           locks[screen]->bgmap);
+					else
+						XSetWindowBackground(dpy,
+						                     locks[screen]->win,
+						                     locks[screen]->colors[0]);
 					XClearWindow(dpy, locks[screen]->win);
 				}
 				oldc = color;
